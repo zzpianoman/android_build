@@ -228,6 +228,10 @@ function setpaths()
     unset ANDROID_HOST_OUT
     export ANDROID_HOST_OUT=$(get_abs_build_var HOST_OUT)
 
+    if [ -n "$ANDROID_CCACHE_DIR" ]; then
+        export CCACHE_DIR=$ANDROID_CCACHE_DIR
+    fi
+
     # needed for building linux on MacOS
     # TODO: fix the path
     #export HOST_EXTRACFLAGS="-I "$T/system/kernel_headers/host_include
@@ -2447,10 +2451,13 @@ EOF
     fi
 
     stop_n_start=false
-    for FILE in $LOC; do
+    for FILE in $(echo $LOC | xargs -n1 -i echo '{}'); do
         # Make sure file is in $OUT/system or $OUT/data
         case $FILE in
-            $OUT/system/*|$OUT/data/*)
+            $OUT/system/*)
+                TARGET=$(echo $FILE | sed "s#$OUT##")
+            ;;
+            $OUT/data/*)
                 # Get target file name (i.e. /system/bin/adb)
                 TARGET=$(echo $FILE | sed "s#$OUT##")
             ;;
@@ -2477,7 +2484,9 @@ EOF
                 fi
                 adb shell restorecon "$TARGET"
             ;;
-            /system/priv-app/SystemUI/SystemUI.apk|/system/framework/*)
+
+            # | works here because there's only one wildcard to match
+            {/system/}priv-app/SystemUI/SystemUI.apk|framework/*)
                 # Only need to stop services once
                 if ! $stop_n_start; then
                     adb shell stop
