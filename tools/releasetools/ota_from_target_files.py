@@ -95,6 +95,7 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
 
   --override_device <device>
       Override device-specific asserts. Can be a comma-separated list.
+
 """
 
 import sys
@@ -418,9 +419,9 @@ def AppendAssertions(script, info_dict, oem_dict=None):
   oem_props = info_dict.get("oem_fingerprint_properties")
   if oem_props is None or len(oem_props) == 0:
     if OPTIONS.override_device == "auto":
-        device = GetBuildProp("ro.product.device", info_dict)
+      device = GetBuildProp("ro.product.device", info_dict)
     else:
-        device = OPTIONS.override_device
+      device = OPTIONS.override_device
     script.AssertDevice(device)
   else:
     if oem_dict is None:
